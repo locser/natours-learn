@@ -101,3 +101,25 @@ exports.deleteTour = async (req, res) => {
     }
   });
 };
+
+exports.getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      {
+        $group: {
+          _id: '$difficulty',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    res.status(200).json({
+      status: 'success',
+      data: stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'fail',
+      message: error.message,
+    });
+  }
+};
