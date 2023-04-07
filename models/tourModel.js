@@ -51,11 +51,11 @@ const tourSchema = mongoose.Schema(
     priceDiscount: {
       type: Number,
       validate: {
-        function(val) {
+        validator: function (val) {
           if (val <= 0) val = 0;
           return val < this.price;
         },
-        message: 'Discount price {VALUE} must be below regular price',
+        message: 'Discount price ({VALUE}) must be below regular price',
       },
     },
     summary: {
@@ -95,10 +95,10 @@ const tourSchema = mongoose.Schema(
     },
   },
   {
+    timestamp: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  },
-  { timestamp: true }
+  }
 );
 
 // document middle run before .save() and .create()
