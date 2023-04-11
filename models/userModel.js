@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -17,6 +18,11 @@ const userSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
+  },
+  role: {
+    type: String,
+    enum: ['user', 'member', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
   },
   password: {
     type: String,
@@ -36,6 +42,9 @@ const userSchema = new mongoose.Schema({
     message: 'Passwords are not the same!',
     select: false,
   },
+  passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -49,11 +58,40 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.method.correctPassword = async function (
+userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    //nếu cái thời gian đổi mật khẩu là time sau khi th jwt phát hành, phải bảo là true, vì nó cần phải tạo lại jwt
+    // nếu mà thời gian sau sang timestamp sẽ lớn hơn. nếu jwttimestamp lớn hơn có nghĩa nó được tạo sau khi đổi mật khẩu
+    console.log(changedTimestamp, JWTTimestamp);
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);
