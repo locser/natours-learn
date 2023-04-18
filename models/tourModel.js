@@ -127,6 +127,13 @@ const tourSchema = mongoose.Schema(
         ref: 'User',
       },
     ],
+
+    // reviews: [
+    //   {
+    //     type: mongoose.Schema.ObjectId,
+    //     ref: 'Review',
+    //   },
+    // ],
   },
   {
     timestamp: true,
@@ -151,6 +158,15 @@ tourSchema.pre('save', function (next) {
 tourSchema.pre(/^find/, function (next) {
   this.find({
     secretTour: { $ne: true },
+  });
+  next();
+});
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt -id',
+    // TODO: remove user's role
   });
   next();
 });
@@ -183,6 +199,13 @@ tourSchema.pre('aggregation', function (next) {
 
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
+});
+
+// virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 });
 
 const Tour = mongoose.model('Tour', tourSchema);

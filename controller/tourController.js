@@ -29,7 +29,8 @@ exports.getAllTours = catchAsync(async (req, res) => {
 });
 
 exports.getTourById = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(Object(req.params.id));
+  const tour = await Tour.findById(Object(req.params.id)).populate('reviews');
+  //populate() -  get info about user from el in guides
   // Tour.findOne(Object(req.params.id)
 
   //if tour is null -> error
