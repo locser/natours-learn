@@ -26,7 +26,13 @@ router
     authController.restrictTo('admin', 'lead-guide', 'guide'),
     tourController.getTourStats
   );
-router.route('/Monthly-Plan/:year').get(tourController.getMonthlyPlan);
+router
+  .route('/Monthly-Plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    tourController.getMonthlyPlan
+  );
 
 router
   .route('/')
