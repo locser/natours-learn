@@ -142,6 +142,10 @@ const tourSchema = mongoose.Schema(
   }
 );
 
+// create index
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 // document middle run before .save() and .create()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
