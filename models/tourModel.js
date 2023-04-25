@@ -38,6 +38,7 @@ const tourSchema = mongoose.Schema(
       default: 4.5,
       min: [0.0, 'Rating must be above 1.0'],
       max: [5.0, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10, // 4.7777777 => 4.8
     },
     ratingsQuantity: {
       type: Number,
@@ -145,6 +146,7 @@ const tourSchema = mongoose.Schema(
 // create index
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 // document middle run before .save() and .create()
 tourSchema.pre('save', function (next) {
@@ -183,18 +185,18 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 //aggregation middleware
-tourSchema.pre('aggregation', function (next) {
-  /**Giải thích từng phần trong lệnh:
+// tourSchema.pre('aggregation', function (next) {
+//   /**Giải thích từng phần trong lệnh:
 
-    this.pipeline(): trả về pipeline hiện tại của truy vấn aggregation.
-    unshift(): phương thức thêm một phần tử vào đầu của mảng.
-    {$match: { secretTour: { $ne: true } } }: giai đoạn mới được thêm vào pipeline là một $match stage, nó sẽ loại bỏ tất cả các documents có trường secretTour bằng true.
-    Vì vậy, câu lệnh này sẽ thêm một giai đoạn mới vào đầu của pipeline aggregation để loại bỏ tất cả các tour có thuộc tính secretTour bằng true trước khi thực hiện các giai đoạn tiếp theo của truy vấn. 
-*/
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
-  next();
-});
+//     this.pipeline(): trả về pipeline hiện tại của truy vấn aggregation.
+//     unshift(): phương thức thêm một phần tử vào đầu của mảng.
+//     {$match: { secretTour: { $ne: true } } }: giai đoạn mới được thêm vào pipeline là một $match stage, nó sẽ loại bỏ tất cả các documents có trường secretTour bằng true.
+//     Vì vậy, câu lệnh này sẽ thêm một giai đoạn mới vào đầu của pipeline aggregation để loại bỏ tất cả các tour có thuộc tính secretTour bằng true trước khi thực hiện các giai đoạn tiếp theo của truy vấn.
+// */
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   console.log(this.pipeline());
+//   next();
+// });
 
 // tourSchema.pre('find', function (next) {
 //   this.find({ secretTour: { $ne: true } });
