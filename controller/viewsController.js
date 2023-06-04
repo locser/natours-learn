@@ -26,7 +26,28 @@ exports.getTour = catchAsync(async (req, res) => {
 
   // 3 Render that template using data from collection
   res.status(200).render('tour', {
-    title: 'The Forest Hiker Tour',
+    title: `${tour.name} Tour`,
     tour: tour,
   });
 });
+
+exports.getLogin = (req, res) => {
+  // res.status(200).render('login', {
+  //   title: 'Login into your account',
+  // });
+
+  // FIXME: fix on browser s://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' because it violates the following Content Security Policy directive: "script-src 'self'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+  res
+    .status(200)
+    .set(
+      'Content-Security-Policy',
+      "connect-src 'self' https://cdnjs.cloudflare.com"
+      // 7.0.0.1:3000/api/v1/users/login' because it violates the following Content Security Policy directive:
+      // "connect-src 'self' https://cdnjs.cloudflare.com".
+      // ->  views/base/pug
+    )
+    .render('login', {
+      title: 'Log into your account',
+    });
+};

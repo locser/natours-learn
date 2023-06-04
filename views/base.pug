@@ -2,12 +2,12 @@ doctype html
 html
     head
         block head
-        meta(charset='UTF-8')
-        meta(name='viewport' content='width=device-width, initial-scale=1.0')
-        link(rel='stylesheet' href='/css/style.css')
-        link(rel='shortcut icon' type='image/png' href='/img/favicon.png')
-        link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
-        title Natours | #{title}
+            meta(charset='UTF-8')
+            meta(name='viewport' content='width=device-width, initial-scale=1.0')
+            link(rel='stylesheet' href='/css/style.css')
+            link(rel='shortcut icon' type='image/png' href='/img/favicon.png')
+            link(rel='stylesheet' href='https://fonts.googleapis.com/css?family=Lato:300,300i,700')
+            title Natours | #{title}
     body 
         //- HEADER
         include _header
@@ -18,3 +18,28 @@ html
 
         //- Footer
         include _footer
+
+        script(src='/js/bundle.js')
+
+        //- script(src='/js/mapbox.js')
+        //- //- FIXME: fix axios
+        //- script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js')
+        //- //- script(script-src-elem='https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js')
+
+        //- script(src='/js/login.js')
+
+        //- You can edit your app.js helmet line like this. I used unpkg cdn domain for axios, you can just put cloudflare or whatever you're using. For css, like font awesome, I guess you use styleSrc, and for fonts you use fontSrc.
+        //-     // before
+        //-     app.use(helmet());
+            
+        //-     //after
+        //-     app.use(
+        //-     helmet.contentSecurityPolicy({
+        //-         directives: {
+        //-         defaultSrc: ["'self'"],
+        //-         scriptSrc: ["'self'", "unpkg.com"],
+        //-         styleSrc: ["'self'", "cdnjs.cloudflare.com"],
+        //-         // fontSrc: ["'self'", "maxcdn.bootstrapcdn.com"],
+        //-         },
+        //-     })
+        //-     );
