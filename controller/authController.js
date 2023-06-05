@@ -60,14 +60,26 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 2- checkk if correct
   const user = await User.findOne({ email }).select('+password');
-  const correct = await user.correctPassword(password, user.password);
+  // FIX: when i have a email, and User.findOne return user null,
+  //        i can get user.password to call user.correctPassword().
+  // const correct = await user.correctPassword(password, user.password);
 
-  if (!user || !correct) {
+  // if (!user || !correct) {
+  // first, it will check user null, check user password
+  if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
   // 3 - if everything ok, send token to client
   createSendToken(user, 200, res);
 });
+
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expiress: new Date(Date.now() + 3 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
 
 exports.protect = catchAsync(async (req, res, next) => {
   // 1 getting token and check of it's there
@@ -112,31 +124,35 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 //Only for rendered pages, no errors
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
+exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
-    //1) verify token
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
+    try {
+      //1) verify token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
 
-    // 2 check if user still exists
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
+      // 2 check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      // 3 check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      // there is a logged in user
+      res.locals.user = currentUser;
+      return next();
+    } catch (e) {
       return next();
     }
-
-    // 3 check if user changed password after the token was issued
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-
-    // there is a logged in user
-    res.locals.user = currentUser;
-    return next();
   }
   next();
-});
+};
 
 exports.restrictTo =
   (...roles) =>

@@ -1,13 +1,14 @@
-//type is 'success' or 'error'
+/* eslint-disable */
 
 export const hideAlert = () => {
   const el = document.querySelector('.alert');
   if (el) el.parentElement.removeChild(el);
 };
-export const showAlert = (type, message) => {
-  hideAlert();
-  const markup = `<div class="alert alert--${type}">${message}</div>`;
 
+// type is 'success' or 'error'
+export const showAlert = (type, msg) => {
+  hideAlert();
+  const markup = `<div class="alert alert--${type}">${msg}</div>`;
   document.querySelector('body').insertAdjacentHTML('afterbegin', markup);
-  winbdow.setTimeout(hideAlert, 5500);
+  window.setTimeout(hideAlert, 5000);
 };
