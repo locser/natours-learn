@@ -1,5 +1,6 @@
 const Tour = require('../models/tourModel');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 exports.getOverview = catchAsync(async (req, res) => {
   // 1 get tour data from collection
@@ -15,12 +16,16 @@ exports.getOverview = catchAsync(async (req, res) => {
   });
 });
 
-exports.getTour = catchAsync(async (req, res) => {
+exports.getTour = catchAsync(async (req, res, next) => {
   // 1 get the data for requested tour
   const tour = await Tour.findOne({ slug: req.params.slug }).populate({
     path: 'reviews',
     fields: 'review rating user',
   });
+
+  if (!tour) {
+    return next(new AppError('There is no tour with the name!', 404));
+  }
 
   // 2 Build template
 
@@ -32,12 +37,7 @@ exports.getTour = catchAsync(async (req, res) => {
 });
 
 exports.getLogin = (req, res) => {
-  // res.status(200).render('login', {
-  //   title: 'Login into your account',
-  // });
-
   // FIXME: fix on browser s://cdn.jsdelivr.net/npm/axios/dist/axios.min.js' because it violates the following Content Security Policy directive: "script-src 'self'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
-
   res
     .status(200)
     .set(

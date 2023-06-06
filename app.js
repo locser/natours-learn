@@ -96,7 +96,7 @@ app.use((req, res, next) => {
   // console.log(req.headers);
 
   //test cookie logging
-  console.log(`- cookie: ${req.cookies.jwt}`);
+  // console.log(`- cookie: ${req.cookies.jwt}`);
   next();
 });
 
@@ -111,7 +111,6 @@ app.all('*', (req, res, next) => {
   // const err = new Error(`Can't find ${req.originalUrl} on this server!`);
   // err.status = 'fail';
   // err.statusCode = 404;
-
   next(new AppError(`Can't find ${req.originalUrl} on this server!`), 404);
 });
 
