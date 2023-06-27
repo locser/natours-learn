@@ -78,6 +78,8 @@ exports.logout = (req, res) => {
     expiress: new Date(Date.now() + 3 * 1000),
     httpOnly: true,
   });
+  //avoid jwt malformed
+  res.clearCookie('jwt');
   res.status(200).json({ status: 'success' });
 };
 
@@ -94,9 +96,12 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(
-      new AppError('You are not logged in! Please log in to get access', 401)
-    );
+    return res.redirect('/');
+    //ADD RETURN fix the issue of logging out when the user is on the /me account settings page and when logged out TAKES TO TO / ROUTE AND GETS RID OF ERR__HTTP_HEADERS_SENT ERROR....ERROR CHECK BELOW IS TOTALLY POINTLESS.
+
+    // return next(
+    //   new AppError('You are not logged in! Please log in to get access', 401)
+    // );
   }
   // 2 verification token
   const decode = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -125,6 +130,10 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 //Only for rendered pages, no errors
 exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt === null) {
+    return next();
+  }
+
   if (req.cookies.jwt) {
     try {
       //1) verify token
@@ -137,15 +146,19 @@ exports.isLoggedIn = async (req, res, next) => {
       const currentUser = await User.findById(decoded.id);
       if (!currentUser) {
         return next();
+        //IF TRUE (NO USER EXISTS) GET OUT OF THIS MIDDLEWARE AND MOVEON WITH THE NEXT()
       }
 
       // 3 check if user changed password after the token was issued
       if (currentUser.changedPasswordAfter(decoded.iat)) {
         return next();
+        //IF TRUE (PASSWORD CHANGED) GET OUT OF THIS MIDDLEWARE AND MOVEON WITH THE NEXT()
       }
 
       // there is a logged in user
+      //->GRANT ACCESS TO THE PROTECTED VIEW
       res.locals.user = currentUser;
+      //VERY IMPORTANT! Each and every pug template will have access to res.locals. So whatever variable defiend thru locals is accessible by PUG files.
       return next();
     } catch (e) {
       return next();

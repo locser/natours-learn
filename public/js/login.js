@@ -21,7 +21,7 @@ export const login = async (email, password) => {
         location.assign('/');
       }, 1500);
     }
-    console.log(res);
+    // console.log(res);
 
     //you can test with: "email": "user@example.com", -"password": "test1234"
   } catch (err) {

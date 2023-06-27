@@ -92,7 +92,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     );
     //nếu cái thời gian đổi mật khẩu là time sau khi th jwt phát hành, phải bảo là true, vì nó cần phải tạo lại jwt
     // nếu mà thời gian sau sang timestamp sẽ lớn hơn. nếu jwttimestamp lớn hơn có nghĩa nó được tạo sau khi đổi mật khẩu
-    console.log(changedTimestamp, JWTTimestamp);
+    // console.log(changedTimestamp, JWTTimestamp);
     return JWTTimestamp < changedTimestamp;
   }
 
@@ -107,7 +107,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest('hex');
 
-  console.log({ resetToken }, this.passwordResetToken);
+  // console.log({ resetToken }, this.passwordResetToken);
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;

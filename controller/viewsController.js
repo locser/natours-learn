@@ -51,3 +51,10 @@ exports.getLogin = (req, res) => {
       title: 'Log into your account',
     });
 };
+
+exports.getAccout = (req, res) => {
+  res.status(200).render('account', {
+    title: 'Your account',
+    user: req.user,
+  });
+};

@@ -25,7 +25,7 @@ const handleJWTExpiredError = () =>
   new AppError('Your token has expired! Please login in again!', 401);
 
 const sendErrorDev = (err, req, res) => {
-  console.log(req);
+  // console.log(req);
   // API
   if (req.originalUrl && req.originalUrl.startsWith('/api')) {
     // Xử lý khi đường dẫn gốc bắt đầu bằng '/api'
