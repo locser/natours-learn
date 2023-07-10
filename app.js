@@ -1,120 +1,111 @@
 const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
-const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const xss = require('xss-clean');
+const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
+
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controller/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
-const viewsRouter = require('./routes/viewsRoutes');
+const viewRouter = require('./routes/viewsRoutes');
 
 const app = express();
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
-// serving static files
+// 1) GLOBAL MIDDLEWARES
+// Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// security HTTP header
-// app.use(helmet());
-
-// FIXME: You can edit your app.js helmet line like this. I used unpkg cdn domain for axios, you can just put cloudflare or whatever you're using. For css, like font awesome, I guess you use styleSrc, and for fonts you use fontSrc.
-// before
-// app.use(helmet());
-
-//after
-// time: before 01-06
+// Set security HTTP headers
 // app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       scriptSrc: ["'self'", 'unpkg.com'],
-//       styleSrc: ["'self'", 'cdnjs.cloudflare.com'],
-//       // fontSrc: ["'self'", "maxcdn.bootstrapcdn.com"],
-//     },
+//   helmet({
+//     'connect-src': ["'self'", 'ws://localhost:56452/'],
+//     styleSrc: ["'self'", 'cdnjs.cloudflare.com'],
+
+//     // defaultSrc: ["'self'", 'ws://localhost:56452/'],
+//     // scriptSrc: ["'self'", 'unpkg.com'],
+//     // styleSrc: ["'self'", 'cdnjs.cloudflare.com'],
+//     // connectSrc: ["'self'"],
 //   })
 // );
-// TODO: 01/06/2023 config helmet.contentSecurityPolicy()
-// time - 03/06
 
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'unpkg.com'],
-      styleSrc: ["'self'", 'cdnjs.cloudflare.com'],
-      // fontSrc: ["'self'", "maxcdn.bootstrapcdn.com"],
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'connect-src': [
+        "'self'",
+        'ws://localhost:56452/',
+        'http://127.0.0.1:3000',
+        '*',
+      ],
     },
   })
 );
-
-//development logging
-//add middleware
+// app.use(helmet());
+// Development logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// limit request form same API
+// Limit requests from same API
 const limiter = rateLimit({
-  max: 100, //max requests per hour
+  max: 100,
   windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour',
+  message: 'Too many requests from this IP, please try again in an hour!',
 });
 app.use('/api', limiter);
 
 // Body parser, reading data from body into req.body
-app.use(express.json({ limit: '100kb' }));
-app.use(cookieParser()); // npm i cookie-parser
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
 
-// data sanitization against NOSQL query injection
+// Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
-//data sanitization against XSS
+
+// Data sanitization against XSS
 app.use(xss());
 
-// prevent param  pollution
+// Prevent parameter pollution
 app.use(
   hpp({
-    whitelist: ['duration', 'ratingsQuantity', 'ratingsAverage'],
+    whitelist: [
+      'duration',
+      'ratingsQuantity',
+      'ratingsAverage',
+      'maxGroupSize',
+      'difficulty',
+      'price',
+    ],
   })
 );
 
-app.use((req, res, next) => {
-  next();
-});
-
-// middleware for testing
+// Test middleware
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  // console.log(req.requestTime);
-  // console.log(req.headers);
-
-  //test cookie logging
-  // console.log(`- cookie: ${req.cookies.jwt}`);
+  // console.log(req.cookies);
   next();
 });
 
-// Routes
-app.use('/', viewsRouter);
-
+// 3) ROUTES
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
 
 app.all('*', (req, res, next) => {
-  // const err = new Error(`Can't find ${req.originalUrl} on this server!`);
-  // err.status = 'fail';
-  // err.statusCode = 404;
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`), 404);
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// /Implementing a Global Error Handling Middleware
 app.use(globalErrorHandler);
 
 module.exports = app;

@@ -34,3 +34,7 @@ aaaa.txt
 .cache
 
 natour-learn.code-workspace
+
+
+public/js/bundle.js
+public/js/bundle.js.map
