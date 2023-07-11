@@ -1,6 +1,7 @@
 const express = require('express');
 const viewsController = require('../controller/viewsController');
 const authController = require('../controller/authController');
+const bookingController = require('../controller/bookingController');
 
 const router = express.Router();
 
@@ -19,6 +20,13 @@ router.post(
   '/submit-user-data',
   authController.protect,
   viewsController.updateUserData
+);
+
+router.get(
+  '/my-tours',
+  bookingController.createBookingCheckout,
+  authController.protect,
+  viewsController.getMyTours
 );
 
 module.exports = router;
