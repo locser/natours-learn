@@ -59,7 +59,7 @@ if (process.argv[2] === '--import') {
   deleteAll();
 }
 
-console.log(process.argv);
+// console.log(process.argv);
 
 // ERROR: import data
 /**
